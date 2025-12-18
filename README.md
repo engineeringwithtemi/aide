@@ -1,5 +1,9 @@
 # AIDE - Active Interactive Development Environment
 
+## A.I Driven Education
+
+Tags: ["AI Driven Education"]
+
 Transform passive learning materials into interactive practice tools.
 
 ## Quick Start
@@ -29,6 +33,7 @@ make ci
 ## Common Commands
 
 ### Aliases (Fast!)
+
 ```bash
 # Backend
 make bt       # backend-test
@@ -52,6 +57,7 @@ make d        # dev (both)
 ```
 
 ### Full Commands
+
 ```bash
 # Development
 make dev                    # Start both servers
@@ -92,6 +98,7 @@ aide/
 ## Tech Stack
 
 ### Backend
+
 - **Python 3.13** - Language
 - **FastAPI** - API framework
 - **Ruff** - Linting & formatting
@@ -100,6 +107,7 @@ aide/
 - **uv** - Package manager
 
 ### Frontend (Coming Soon)
+
 - **React 18** - UI framework
 - **TypeScript** - Type safety
 - **Vite** - Build tool
@@ -107,6 +115,7 @@ aide/
 - **Vitest** - Testing
 
 ### Infrastructure
+
 - **Docker** - Containerization
 - **Supabase** - Database & storage
 - **Judge0** - Code execution
@@ -115,6 +124,7 @@ aide/
 ## Development Workflow
 
 ### 1. Starting Work
+
 ```bash
 git pull
 make i              # Install dependencies (alias for 'make install')
@@ -122,6 +132,7 @@ make d              # Start dev servers (alias for 'make dev')
 ```
 
 ### 2. While Coding
+
 ```bash
 # In one terminal
 make bd             # Backend dev server
@@ -131,18 +142,21 @@ make btw            # Backend tests in watch mode
 ```
 
 ### 3. Before Committing
+
 ```bash
 make x              # Auto-fix all issues (alias for 'make fix')
 make c              # Check everything passes (alias for 'make check')
 ```
 
 ### 4. Committing
+
 ```bash
 git add .
 git commit -m "feat: your changes"
 ```
 
 ### 5. Before Pushing
+
 ```bash
 make ci             # Run CI pipeline locally
 git push
@@ -162,20 +176,24 @@ git push
 ## Requirements
 
 ### Backend
+
 - Python 3.13+
 - [uv](https://github.com/astral-sh/uv) package manager
 
 ### Frontend
+
 - Node.js 18+
 - npm or pnpm
 
 ### Docker (Optional)
+
 - Docker Desktop or Docker Engine
 - Docker Compose
 
 ## Installation
 
 ### Install uv (if not already installed)
+
 ```bash
 # macOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -185,6 +203,7 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 ### Setup Project
+
 ```bash
 # Clone repository
 git clone <repository-url>
