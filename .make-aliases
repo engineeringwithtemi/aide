@@ -1,0 +1,38 @@
+# Quick Alias Reference (paste in terminal or add to your shell config)
+# ============================================================================
+
+# Backend aliases
+alias mbi='make bi'          # backend-install
+alias mbd='make bd'          # backend-dev
+alias mbl='make bl'          # backend-lint
+alias mblf='make blf'        # backend-lint-fix
+alias mbf='make bf'          # backend-format
+alias mbt='make bt'          # backend-test
+alias mbtf='make btf'        # backend-test-fast
+alias mbtw='make btw'        # backend-test-watch
+alias mbty='make bty'        # backend-type
+alias mbc='make bc'          # backend-check
+alias mbx='make bx'          # backend-fix
+
+# Frontend aliases
+alias mfi='make fi'          # frontend-install
+alias mfd='make fd'          # frontend-dev
+alias mfl='make fl'          # frontend-lint
+alias mflf='make flf'        # frontend-lint-fix
+alias mff='make ff'          # frontend-format
+alias mft='make ft'          # frontend-test
+alias mftw='make ftw'        # frontend-test-watch
+alias mfty='make fty'        # frontend-type
+alias mfc='make fc'          # frontend-check
+alias mfx='make fx'          # frontend-fix
+
+# Combined aliases
+alias mi='make i'            # install
+alias md='make d'            # dev
+alias mc='make c'            # check
+alias mx='make x'            # fix
+alias mt='make t'            # test
+
+# Special
+alias mpre='make pre-commit' # pre-commit
+alias mci='make ci'          # ci
