@@ -47,9 +47,10 @@ help: ## Show this help message
 	@echo "$(GREEN)Aliases (Quick Shortcuts):$(NC)"
 	@echo "  $(YELLOW)Backend:$(NC)  bi bd bl blf bf bfc bt btf btw bty bc bx bcl bsh"
 	@echo "  $(YELLOW)Frontend:$(NC) fi fd fl flf ff ffc ft ftw fty fb fp fc fx fcl"
+	@echo "  $(YELLOW)Docker:$(NC)   dkb dku dkd dkr dkl dkt dksh dkps dkcl"
 	@echo "  $(YELLOW)Combined:$(NC) i d c x t cl"
 	@echo ""
-	@echo "  Tip: Run 'make <alias>' (e.g., 'make bt' for backend-test)"
+	@echo "  Tip: Run 'make <alias>' (e.g., 'make bt' for backend-test, 'make dku' for docker-up)"
 	@echo "  See all aliases: grep '##.*Alias for' Makefile"
 
 install: backend-install frontend-install ## Install all dependencies (backend + frontend)
@@ -104,7 +105,7 @@ backend-format-check: ## Check backend formatting without modifying files
 
 backend-type: ## Run backend type checking (ty)
 	@echo "$(BLUE)Running backend type checking...$(NC)"
-	cd backend && uv run ty .
+	cd backend && uv run ty check
 	@echo "$(GREEN)✓ Backend type checking passed$(NC)"
 
 backend-test: ## Run backend tests with pytest
@@ -274,19 +275,68 @@ docker-up: ## Start all services with Docker Compose
 	@echo "$(BLUE)Starting services...$(NC)"
 	docker compose up -d
 	@echo "$(GREEN)✓ Services started$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Services running:$(NC)"
+	@echo "  Backend:   http://localhost:8000"
+	@echo "  Postgres:  localhost:5432 (user: aide, pass: aide, db: aide)"
+	@echo ""
+	@echo "View logs: make docker-logs"
+
+docker-dev: docker-up ## Start services and follow logs
+	@echo "$(BLUE)Following logs (Ctrl+C to stop watching)...$(NC)"
+	docker compose logs -f
 
 docker-down: ## Stop all services
 	@echo "$(BLUE)Stopping services...$(NC)"
 	docker compose down
 	@echo "$(GREEN)✓ Services stopped$(NC)"
 
+docker-restart: ## Restart all services
+	@echo "$(BLUE)Restarting services...$(NC)"
+	docker compose restart
+	@echo "$(GREEN)✓ Services restarted$(NC)"
+
 docker-logs: ## Show logs from all services
 	docker compose logs -f
+
+docker-logs-backend: ## Show backend logs only
+	docker compose logs -f backend
+
+docker-logs-postgres: ## Show postgres logs only
+	docker compose logs -f postgres
+
+docker-ps: ## Show running containers
+	@echo "$(BLUE)Running containers:$(NC)"
+	@docker compose ps
+
+docker-test: ## Run tests in Docker container
+	@echo "$(BLUE)Running tests in Docker...$(NC)"
+	docker compose --profile test up backend-test --build --abort-on-container-exit
+	@echo "$(GREEN)✓ Tests completed$(NC)"
+
+docker-test-watch: ## Run tests in watch mode in Docker
+	@echo "$(BLUE)Running tests in watch mode...$(NC)"
+	docker compose --profile test run --rm backend-test pytest-watch
+
+docker-shell: ## Open shell in backend container
+	@echo "$(BLUE)Opening shell in backend container...$(NC)"
+	docker compose exec backend sh
+
+docker-shell-test: ## Open shell in test container
+	@echo "$(BLUE)Opening shell in test container...$(NC)"
+	docker compose --profile test run --rm backend-test sh
 
 docker-clean: ## Remove all containers, images, and volumes
 	@echo "$(BLUE)Cleaning Docker resources...$(NC)"
 	docker compose down -v --rmi all
 	@echo "$(GREEN)✓ Docker resources cleaned$(NC)"
+
+docker-prune: ## Remove all unused Docker resources
+	@echo "$(RED)⚠ This will remove ALL unused Docker resources!$(NC)"
+	@echo "$(YELLOW)Press Ctrl+C to cancel...$(NC)"
+	@sleep 3
+	docker system prune -af --volumes
+	@echo "$(GREEN)✓ Docker system pruned$(NC)"
 
 # ============================================================================
 # Database Commands
@@ -418,3 +468,14 @@ c: check                 ## Alias for check
 x: fix                   ## Alias for fix
 t: test                  ## Alias for test
 cl: clean                ## Alias for clean
+
+# Docker aliases (dk prefix)
+dkb: docker-build        ## Alias for docker-build
+dku: docker-up           ## Alias for docker-up
+dkd: docker-down         ## Alias for docker-down
+dkr: docker-restart      ## Alias for docker-restart
+dkl: docker-logs         ## Alias for docker-logs
+dkt: docker-test         ## Alias for docker-test
+dksh: docker-shell       ## Alias for docker-shell
+dkps: docker-ps          ## Alias for docker-ps
+dkcl: docker-clean       ## Alias for docker-clean

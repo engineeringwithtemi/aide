@@ -1,0 +1,158 @@
+version: "3.8"
+
+services:
+  # ============================================================================
+  # Backend Service (Development)
+  # ============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: aide-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for hot reload
+      - ./backend:/app
+      # Don't override these directories with host
+      - /app/.venv
+      - /app/__pycache__
+    environment:
+      # App settings
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=debug
+
+      # Database (will add later when needed)
+      - DATABASE_URL={${DATABASE_URL}}
+
+      # Secrets (load from .env file)
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      # Service URLs (for future services)
+      # - JUDGE0_URL=http://judge0:2358
+      # - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+    networks:
+      - aide-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================================================
+  # Test Database (PostgreSQL)
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: aide-postgres
+    environment:
+      POSTGRES_USER: aide
+      POSTGRES_PASSWORD: aide
+      POSTGRES_DB: aide
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persist data
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - aide-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aide"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # Test Runner Service
+  # ============================================================================
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: test
+    container_name: aide-backend-test
+    volumes:
+      # Mount source code
+      - ./backend:/app
+      # Mount test reports output
+      - ./backend/test-reports:/app/test-reports
+      # Don't override these
+      - /app/.venv
+      - /app/__pycache__
+    environment:
+      # Use test database
+      - DATABASE_URL=postgresql://aide:aide@postgres-test:5432/aide_test
+      - ENVIRONMENT=test
+      - DEBUG=false
+      - LOG_LEVEL=info
+
+      # Test-specific settings
+      - PYTEST_TIMEOUT=300
+      - COVERAGE_MIN=80
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks:
+      - aide-network
+    command: >
+      sh -c "
+        echo 'Waiting for test database...' &&
+        sleep 2 &&
+        pytest -v
+          --cov=app
+          --cov-report=html:/app/test-reports/coverage
+          --cov-report=term-missing
+          --cov-report=xml:/app/test-reports/coverage.xml
+          --junit-xml=/app/test-reports/junit.xml
+          --tb=short
+      "
+    profiles:
+      - test
+
+  # ============================================================================
+  # Test Database (Separate from dev database)
+  # ============================================================================
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: aide-postgres-test
+    environment:
+      POSTGRES_USER: aide
+      POSTGRES_PASSWORD: aide
+      POSTGRES_DB: aide_test
+    ports:
+      - "5433:5432" # Different port to avoid conflict
+    volumes:
+      # Use tmpfs for faster tests (no disk I/O)
+      - type: tmpfs
+        target: /var/lib/postgresql/data
+    networks:
+      - aide-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aide"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    profiles:
+      - test
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  aide-network:
+    driver: bridge
+    name: aide-network
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres-data:
+    name: aide-postgres-data
