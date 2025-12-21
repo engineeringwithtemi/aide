@@ -13,8 +13,10 @@ class AIDEException(Exception):
 class AIDEDatabaseException(AIDEException):
     """Base database exception."""
 
+
 class AIProviderException(AIDEException):
     """Base ai provider exceptions"""
+
 
 class EntityNotFoundException(AIDEDatabaseException):
     """Raised when entity not found."""

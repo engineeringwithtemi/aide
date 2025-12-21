@@ -10,6 +10,7 @@ logger = get_logger(__name__)
 # todo
 ai_provider = None
 
+
 def aiprovider_exception_wrapper[Func: Callable[..., Any]](func: Func) -> Func:
     """Wrapper used to forward re-throw exceptions as AIProviderException."""
 

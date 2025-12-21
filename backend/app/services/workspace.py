@@ -2,7 +2,7 @@
 
 This module provides the business logic for workspace operations,
 interacting with the WorkspaceRepository for database access.
-""" # Module-level docstring
+"""  # Module-level docstring
 
 from uuid import UUID
 
@@ -68,7 +68,9 @@ class WorkspaceService:
             raise EntityNotFoundException(entity="Workspace", entity_id=workspace_id)
         return workspace
 
-    async def list_workspaces(self, limit: int = 100, offset: int = 0) -> list[Workspace]:
+    async def list_workspaces(
+        self, limit: int = 100, offset: int = 0
+    ) -> list[Workspace]:
         """Lists all workspaces with pagination.
 
         Args:
@@ -83,7 +85,9 @@ class WorkspaceService:
         logger.debug("Retrieved workspaces", count=len(workspaces))
         return workspaces
 
-    async def update_workspace(self, workspace_id: UUID, data: WorkspaceUpdate) -> Workspace:
+    async def update_workspace(
+        self, workspace_id: UUID, data: WorkspaceUpdate
+    ) -> Workspace:
         """Updates an existing workspace.
 
         Args:
@@ -99,7 +103,11 @@ class WorkspaceService:
         logger.info("Updating workspace", workspace_id=str(workspace_id))
         workspace = await self.get_workspace(workspace_id)
         update_data = data.model_dump(exclude_unset=True)
-        logger.debug("Update data", workspace_id=str(workspace_id), fields=list(update_data.keys()))
+        logger.debug(
+            "Update data",
+            workspace_id=str(workspace_id),
+            fields=list(update_data.keys()),
+        )
 
         await self.workspace_repo.update(workspace, update_data)
         await self.db.commit()

@@ -75,4 +75,3 @@ def setup_logging(
 
 def get_logger(name: str | None = None) -> structlog.typing.FilteringBoundLogger:
     return structlog.get_logger(name)
-

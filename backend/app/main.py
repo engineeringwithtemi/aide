@@ -53,6 +53,7 @@ app.add_middleware(
 
 register_exception_handlers(app)
 
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Handles unexpected errors, logging them and returning a generic 500 response."""

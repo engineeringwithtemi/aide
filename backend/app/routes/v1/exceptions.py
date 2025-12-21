@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
@@ -24,21 +23,27 @@ async def aide_exception_handler(request: Request, exc: AIDEException) -> JSONRe
     )
 
 
-async def not_found_handler(request: Request, exc: EntityNotFoundException) -> JSONResponse:
+async def not_found_handler(
+    request: Request, exc: EntityNotFoundException
+) -> JSONResponse:
     return JSONResponse(
         status_code=404,
         content={"error": exc.message, "details": exc.details},
     )
 
 
-async def duplicate_handler(request: Request, exc: DuplicateEntityException) -> JSONResponse:
+async def duplicate_handler(
+    request: Request, exc: DuplicateEntityException
+) -> JSONResponse:
     return JSONResponse(
         status_code=409,
         content={"error": exc.message, "details": exc.details},
     )
 
 
-async def db_connection_handler(request: Request, exc: DatabaseConnectionException) -> JSONResponse:
+async def db_connection_handler(
+    request: Request, exc: DatabaseConnectionException
+) -> JSONResponse:
     logger.error("Database connection failed")
     return JSONResponse(
         status_code=503,
@@ -46,13 +51,14 @@ async def db_connection_handler(request: Request, exc: DatabaseConnectionExcepti
     )
 
 
-async def db_error_handler(request: Request, exc: AIDEDatabaseException) -> JSONResponse:
+async def db_error_handler(
+    request: Request, exc: AIDEDatabaseException
+) -> JSONResponse:
     logger.error(f"Database error: {exc.message}")
     return JSONResponse(
         status_code=500,
         content={"error": "An unexpected error occurred"},
     )
-
 
 
 def register_exception_handlers(app: FastAPI) -> None:

@@ -53,17 +53,17 @@ help: ## Show this help message
 	@echo "  Tip: Run 'make <alias>' (e.g., 'make bt' for backend-test, 'make dku' for docker-up)"
 	@echo "  See all aliases: grep '##.*Alias for' Makefile"
 
-install: backend-install frontend-install ## Install all dependencies (backend + frontend)
+install: backend-install frontend-install ## Install all dependencies (backend + frontend) (i)
 
-clean: backend-clean frontend-clean ## Clean all build artifacts and caches
+clean: backend-clean frontend-clean ## Clean all build artifacts and caches (cl)
 
-check: backend-check frontend-check ## Run all checks (lint + type + test)
+check: backend-check frontend-check ## Run all checks (lint + type + test) (c)
 
-fix: backend-fix frontend-fix ## Auto-fix all formatting and linting issues
+fix: backend-fix frontend-fix ## Auto-fix all formatting and linting issues (x)
 
-test: backend-test frontend-test ## Run all tests
+test: backend-test frontend-test ## Run all tests (t)
 
-dev: ## Start both backend and frontend in development mode
+dev: ## Start both backend and frontend in development mode (d)
 	@echo "$(BLUE)Starting development servers...$(NC)"
 	@trap 'kill 0' EXIT; \
 		$(MAKE) backend-dev & \
@@ -74,64 +74,64 @@ dev: ## Start both backend and frontend in development mode
 # Backend Commands (Python + FastAPI)
 # ============================================================================
 
-backend-install: ## Install backend dependencies using uv
+backend-install: ## Install backend dependencies using uv (bi)
 	@echo "$(BLUE)Installing backend dependencies...$(NC)"
 	cd backend && uv sync --dev
 	@echo "$(GREEN)✓ Backend dependencies installed$(NC)"
 
-backend-dev: ## Start backend development server
+backend-dev: ## Start backend development server (bd)
 	@echo "$(BLUE)Starting backend server...$(NC)"
 	cd backend && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-backend-lint: ## Run backend linting (ruff check)
+backend-lint: ## Run backend linting (ruff check) (bl)
 	@echo "$(BLUE)Running backend linting...$(NC)"
 	cd backend && uv run ruff check .
 	@echo "$(GREEN)✓ Backend linting passed$(NC)"
 
-backend-lint-fix: ## Auto-fix backend linting issues
+backend-lint-fix: ## Auto-fix backend linting issues (blf)
 	@echo "$(BLUE)Auto-fixing backend linting issues...$(NC)"
 	cd backend && uv run ruff check --fix .
 	@echo "$(GREEN)✓ Backend linting auto-fixed$(NC)"
 
-backend-format: ## Format backend code (ruff format)
+backend-format: ## Format backend code (ruff format) (bf)
 	@echo "$(BLUE)Formatting backend code...$(NC)"
 	cd backend && uv run ruff format .
 	@echo "$(GREEN)✓ Backend code formatted$(NC)"
 
-backend-format-check: ## Check backend formatting without modifying files
+backend-format-check: ## Check backend formatting without modifying files (bfc)
 	@echo "$(BLUE)Checking backend formatting...$(NC)"
 	cd backend && uv run ruff format --check .
 	@echo "$(GREEN)✓ Backend formatting is correct$(NC)"
 
-backend-type: ## Run backend type checking (ty)
+backend-type: ## Run backend type checking (ty) (bty)
 	@echo "$(BLUE)Running backend type checking...$(NC)"
 	cd backend && uv run ty check
 	@echo "$(GREEN)✓ Backend type checking passed$(NC)"
 
-backend-test: ## Run backend tests with pytest
+backend-test: ## Run backend tests with pytest (bt)
 	@echo "$(BLUE)Running backend tests...$(NC)"
 	cd backend && uv run pytest -v --cov=app --cov-report=term-missing
 	@echo "$(GREEN)✓ Backend tests passed$(NC)"
 
-backend-test-fast: ## Run backend tests without coverage (faster)
+backend-test-fast: ## Run backend tests without coverage (faster) (btf)
 	@echo "$(BLUE)Running backend tests (fast mode)...$(NC)"
 	cd backend && uv run pytest -v
 	@echo "$(GREEN)✓ Backend tests passed$(NC)"
 
-backend-test-watch: ## Run backend tests in watch mode
+backend-test-watch: ## Run backend tests in watch mode (btw)
 	@echo "$(BLUE)Running backend tests in watch mode...$(NC)"
 	cd backend && uv run pytest-watch -v
 
-backend-check: backend-lint backend-format-check backend-type backend-test ## Run all backend checks
+backend-check: backend-lint backend-format-check backend-type backend-test ## Run all backend checks (bc)
 
-backend-fix: backend-lint-fix backend-format ## Auto-fix all backend issues
+backend-fix: backend-lint-fix backend-format ## Auto-fix all backend issues (bx)
 
-backend-clean: ## Clean backend build artifacts and caches
+backend-clean: ## Clean backend build artifacts and caches (bcl)
 	@echo "$(BLUE)Cleaning backend artifacts...$(NC)"
 	cd backend && rm -rf .pytest_cache .ruff_cache .coverage htmlcov __pycache__ **/__pycache__ *.pyc **/*.pyc
 	@echo "$(GREEN)✓ Backend cleaned$(NC)"
 
-backend-shell: ## Open Python shell with backend environment
+backend-shell: ## Open Python shell with backend environment (bsh)
 	@echo "$(BLUE)Opening backend Python shell...$(NC)"
 	cd backend && uv run python
 
@@ -144,7 +144,7 @@ backend-deps-update: ## Update backend dependencies
 # Frontend Commands (React + TypeScript)
 # ============================================================================
 
-frontend-install: ## Install frontend dependencies
+frontend-install: ## Install frontend dependencies (fi)
 	@echo "$(BLUE)Installing frontend dependencies...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && npm install; \
@@ -153,7 +153,7 @@ frontend-install: ## Install frontend dependencies
 		echo "$(YELLOW)⚠ Frontend directory not found, skipping...$(NC)"; \
 	fi
 
-frontend-dev: ## Start frontend development server
+frontend-dev: ## Start frontend development server (fd)
 	@echo "$(BLUE)Starting frontend server...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && npm run dev; \
@@ -161,7 +161,7 @@ frontend-dev: ## Start frontend development server
 		echo "$(YELLOW)⚠ Frontend directory not found, skipping...$(NC)"; \
 	fi
 
-frontend-lint: ## Run frontend linting (ESLint)
+frontend-lint: ## Run frontend linting (ESLint) (fl)
 	@echo "$(BLUE)Running frontend linting...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && npm run lint; \
@@ -170,7 +170,7 @@ frontend-lint: ## Run frontend linting (ESLint)
 		echo "$(YELLOW)⚠ Frontend directory not found, skipping...$(NC)"; \
 	fi
 
-frontend-lint-fix: ## Auto-fix frontend linting issues
+frontend-lint-fix: ## Auto-fix frontend linting issues (flf)
 	@echo "$(BLUE)Auto-fixing frontend linting issues...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && npm run lint:fix; \
@@ -179,7 +179,7 @@ frontend-lint-fix: ## Auto-fix frontend linting issues
 		echo "$(YELLOW)⚠ Frontend directory not found, skipping...$(NC)"; \
 	fi
 
-frontend-format: ## Format frontend code (Prettier)
+frontend-format: ## Format frontend code (Prettier) (ff)
 	@echo "$(BLUE)Formatting frontend code...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && npm run format; \
@@ -188,7 +188,7 @@ frontend-format: ## Format frontend code (Prettier)
 		echo "$(YELLOW)⚠ Frontend directory not found, skipping...$(NC)"; \
 	fi
 
-frontend-format-check: ## Check frontend formatting without modifying files
+frontend-format-check: ## Check frontend formatting without modifying files (ffc)
 	@echo "$(BLUE)Checking frontend formatting...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && npm run format:check; \
@@ -197,7 +197,7 @@ frontend-format-check: ## Check frontend formatting without modifying files
 		echo "$(YELLOW)⚠ Frontend directory not found, skipping...$(NC)"; \
 	fi
 
-frontend-type: ## Run frontend type checking (tsc)
+frontend-type: ## Run frontend type checking (tsc) (fty)
 	@echo "$(BLUE)Running frontend type checking...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && npm run type-check; \
@@ -206,7 +206,7 @@ frontend-type: ## Run frontend type checking (tsc)
 		echo "$(YELLOW)⚠ Frontend directory not found, skipping...$(NC)"; \
 	fi
 
-frontend-test: ## Run frontend tests (Vitest)
+frontend-test: ## Run frontend tests (Vitest) (ft)
 	@echo "$(BLUE)Running frontend tests...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && npm run test; \
@@ -215,7 +215,7 @@ frontend-test: ## Run frontend tests (Vitest)
 		echo "$(YELLOW)⚠ Frontend directory not found, skipping...$(NC)"; \
 	fi
 
-frontend-test-watch: ## Run frontend tests in watch mode
+frontend-test-watch: ## Run frontend tests in watch mode (ftw)
 	@echo "$(BLUE)Running frontend tests in watch mode...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && npm run test:watch; \
@@ -223,7 +223,7 @@ frontend-test-watch: ## Run frontend tests in watch mode
 		echo "$(YELLOW)⚠ Frontend directory not found, skipping...$(NC)"; \
 	fi
 
-frontend-build: ## Build frontend for production
+frontend-build: ## Build frontend for production (fb)
 	@echo "$(BLUE)Building frontend...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && npm run build; \
@@ -232,7 +232,7 @@ frontend-build: ## Build frontend for production
 		echo "$(YELLOW)⚠ Frontend directory not found, skipping...$(NC)"; \
 	fi
 
-frontend-preview: ## Preview frontend production build
+frontend-preview: ## Preview frontend production build (fp)
 	@echo "$(BLUE)Previewing frontend build...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && npm run preview; \
@@ -240,11 +240,11 @@ frontend-preview: ## Preview frontend production build
 		echo "$(YELLOW)⚠ Frontend directory not found, skipping...$(NC)"; \
 	fi
 
-frontend-check: frontend-lint frontend-format-check frontend-type frontend-test ## Run all frontend checks
+frontend-check: frontend-lint frontend-format-check frontend-type frontend-test ## Run all frontend checks (fc)
 
-frontend-fix: frontend-lint-fix frontend-format ## Auto-fix all frontend issues
+frontend-fix: frontend-lint-fix frontend-format ## Auto-fix all frontend issues (fx)
 
-frontend-clean: ## Clean frontend build artifacts and caches
+frontend-clean: ## Clean frontend build artifacts and caches (fcl)
 	@echo "$(BLUE)Cleaning frontend artifacts...$(NC)"
 	@if [ -d "frontend" ]; then \
 		cd frontend && rm -rf node_modules/.vite dist .turbo; \
@@ -266,12 +266,12 @@ frontend-deps-update: ## Update frontend dependencies
 # Docker Commands
 # ============================================================================
 
-docker-build: ## Build all Docker images
+docker-build: ## Build all Docker images (dkb)
 	@echo "$(BLUE)Building Docker images...$(NC)"
 	docker compose build
 	@echo "$(GREEN)✓ Docker images built$(NC)"
 
-docker-up: ## Start all services with Docker Compose
+docker-up: ## Start all services with Docker Compose (dku)
 	@echo "$(BLUE)Starting services...$(NC)"
 	docker compose up -d
 	@echo "$(GREEN)✓ Services started$(NC)"
@@ -286,17 +286,17 @@ docker-dev: docker-up ## Start services and follow logs
 	@echo "$(BLUE)Following logs (Ctrl+C to stop watching)...$(NC)"
 	docker compose logs -f
 
-docker-down: ## Stop all services
+docker-down: ## Stop all services (dkd)
 	@echo "$(BLUE)Stopping services...$(NC)"
 	docker compose down
 	@echo "$(GREEN)✓ Services stopped$(NC)"
 
-docker-restart: ## Restart all services
+docker-restart: ## Restart all services (dkr)
 	@echo "$(BLUE)Restarting services...$(NC)"
 	docker compose restart
 	@echo "$(GREEN)✓ Services restarted$(NC)"
 
-docker-logs: ## Show logs from all services
+docker-logs: ## Show logs from all services (dkl)
 	docker compose logs -f
 
 docker-logs-backend: ## Show backend logs only
@@ -305,11 +305,11 @@ docker-logs-backend: ## Show backend logs only
 docker-logs-postgres: ## Show postgres logs only
 	docker compose logs -f postgres
 
-docker-ps: ## Show running containers
+docker-ps: ## Show running containers (dkps)
 	@echo "$(BLUE)Running containers:$(NC)"
 	@docker compose ps
 
-docker-test: ## Run tests in Docker container
+docker-test: ## Run tests in Docker container (dkt)
 	@echo "$(BLUE)Running tests in Docker...$(NC)"
 	docker compose --profile test up backend-test --build --abort-on-container-exit
 	@echo "$(GREEN)✓ Tests completed$(NC)"
@@ -318,7 +318,7 @@ docker-test-watch: ## Run tests in watch mode in Docker
 	@echo "$(BLUE)Running tests in watch mode...$(NC)"
 	docker compose --profile test run --rm backend-test pytest-watch
 
-docker-shell: ## Open shell in backend container
+docker-shell: ## Open shell in backend container (dksh)
 	@echo "$(BLUE)Opening shell in backend container...$(NC)"
 	docker compose exec backend sh
 
@@ -326,7 +326,7 @@ docker-shell-test: ## Open shell in test container
 	@echo "$(BLUE)Opening shell in test container...$(NC)"
 	docker compose --profile test run --rm backend-test sh
 
-docker-clean: ## Remove all containers, images, and volumes
+docker-clean: ## Remove all containers, images, and volumes (dkcl)
 	@echo "$(BLUE)Cleaning Docker resources...$(NC)"
 	docker compose down -v --rmi all
 	@echo "$(GREEN)✓ Docker resources cleaned$(NC)"

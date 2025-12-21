@@ -26,7 +26,9 @@ class BaseRepository(Generic[ModelType]):
 
     @db_exception_handler
     async def get_all(self, limit: int = 100, offset: int = 0) -> list[ModelType]:
-        logger.debug("Repository get_all", model=self.model.__name__, limit=limit, offset=offset)
+        logger.debug(
+            "Repository get_all", model=self.model.__name__, limit=limit, offset=offset
+        )
         stmt = select(self.model).limit(limit).offset(offset)
         result = await self.db.scalars(stmt)
         return list(result)
@@ -40,7 +42,9 @@ class BaseRepository(Generic[ModelType]):
 
     @db_exception_handler
     async def update(self, entity: ModelType, data: dict) -> ModelType:
-        logger.debug("Repository update", model=self.model.__name__, fields=list(data.keys()))
+        logger.debug(
+            "Repository update", model=self.model.__name__, fields=list(data.keys())
+        )
         for key, value in data.items():
             setattr(entity, key, value)
         await self.db.flush()
@@ -64,13 +68,20 @@ class SourceRepository(BaseRepository[Source]):
 
     @db_exception_handler
     async def get_by_workspace(self, workspace_id: UUID) -> list[Source]:
-        logger.debug("Repository get_by_workspace", model="Source", workspace_id=str(workspace_id))
+        logger.debug(
+            "Repository get_by_workspace",
+            model="Source",
+            workspace_id=str(workspace_id),
+        )
         stmt = select(Source).where(Source.workspace_id == workspace_id)
         results = await self.db.scalars(stmt)
-        logger.debug("Repository get_by_workspace result", model="Source", workspace_id=str(workspace_id), count=len(results))
+        logger.debug(
+            "Repository get_by_workspace result",
+            model="Source",
+            workspace_id=str(workspace_id),
+            count=len(results),
+        )
         return list(results)
-
-
 
 
 class LabRepository(BaseRepository[Lab]):
@@ -79,10 +90,17 @@ class LabRepository(BaseRepository[Lab]):
 
     @db_exception_handler
     async def get_by_workspace(self, workspace_id: UUID) -> list[Lab]:
-        logger.debug("Repository get_by_workspace", model="Lab", workspace_id=str(workspace_id))
+        logger.debug(
+            "Repository get_by_workspace", model="Lab", workspace_id=str(workspace_id)
+        )
         stmt = select(Lab).where(Lab.workspace_id == workspace_id)
         results = await self.db.scalars(stmt)
-        logger.debug("Repository get_by_workspace result", model="Lab", workspace_id=str(workspace_id), count=len(results))
+        logger.debug(
+            "Repository get_by_workspace result",
+            model="Lab",
+            workspace_id=str(workspace_id),
+            count=len(results),
+        )
         return list(results)
 
     @db_exception_handler
@@ -91,6 +109,10 @@ class LabRepository(BaseRepository[Lab]):
         stmt = select(Lab).where(Lab.source_id == source_id)
 
         results = await self.db.scalars(stmt)
-        logger.debug("Repository get_by_source result", model="Lab", source_id=str(source_id), count=len(results))
+        logger.debug(
+            "Repository get_by_source result",
+            model="Lab",
+            source_id=str(source_id),
+            count=len(results),
+        )
         return list(results)
-    
