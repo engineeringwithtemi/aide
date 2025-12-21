@@ -12,6 +12,8 @@ from app.routes.v1 import workspaces
 from contextlib import asynccontextmanager
 from app.config.settings import settings
 from app.config.logging import setup_logging, get_logger
+from app.routes.v1.exceptions import register_exception_handlers
+
 
 # Initialize logging
 setup_logging(
@@ -21,7 +23,7 @@ setup_logging(
     json_format=settings.log_json,
 )
 
-logger = get_logger()
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -49,6 +51,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+register_exception_handlers(app)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
