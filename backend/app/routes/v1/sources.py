@@ -117,8 +117,6 @@ async def update_source(source_id: UUID, request: SourceUpdate, source_svc: Sour
         - Any source-specific fields
     """
     db_source = await source_svc.update_source(source_id, request)
-    source_class = get_source_class(db_source.type)
-    source = await source_class.setup_from_db(db_source)
 
     return SourceRead.model_validate(db_source)
 
