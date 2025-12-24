@@ -4,7 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 from typing import Dict, Any
 from app.db.tables import ChatRole, LabStatus
-
+from types import SimpleNamespace
 
 # ============ Workspace ============
 class WorkspaceCreate(BaseModel):
@@ -162,3 +162,18 @@ class SourceMetadata:
 
     title: str
     metadata: Dict[str, Any]
+
+
+@dataclass
+class Chapter:
+    """PDF Chapter/Section Data"""
+    id: str
+    title: str
+    start_page: str
+    end_page: str
+    text: str
+
+
+lab_types = SimpleNamespace(
+    CODE_LAB="code_lab"
+)

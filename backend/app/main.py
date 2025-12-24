@@ -13,8 +13,8 @@ from contextlib import asynccontextmanager
 from app.config.settings import settings
 from app.config.logging import setup_logging, get_logger
 from app.routes.v1.exceptions import register_exception_handlers
-
-
+from supabase import  AsyncClientOptions, create_async_client
+from app.services.supabase import SupabaseService
 # Initialize logging
 setup_logging(
     log_level=settings.log_level,
@@ -31,6 +31,12 @@ async def lifespan(app: FastAPI):
     """Enriches the app with additional state and configuration like the httpx client."""
     logger.info("Application starting up")
     # Initialize resources here (db connections, etc.)
+    supabase_client = await create_async_client(settings.supabase_url, settings.supabase_key,
+                                                          options=AsyncClientOptions(
+            postgrest_client_timeout=10, storage_client_timeout=10
+        ))
+    
+    app.state.supabase_service = SupabaseService(supabase_client)
     yield
     # Cleanup resources here
     logger.info("Application shutting down")
