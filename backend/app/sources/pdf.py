@@ -5,6 +5,9 @@ from typing import List, Optional, Dict, Any
 from uuid import UUID
 from app.services.pdf_parser import extract_chapters
 from app.services.supabase import SupabaseService
+from app.services.source import SourceService
+from app.db.tables import Source as SourceModel
+
 
 @register_source
 class PDFSource(Source):
@@ -20,13 +23,15 @@ class PDFSource(Source):
         id: UUID,
         workspace_id: UUID,
         title: str,
-        supabase_service:SupabaseService,  
+        supabase_service: Optional[SupabaseService] = None,
         cache_id: Optional[str] = None,
         cache_expires_at: Optional[str] = None,
-        source_service = None
+        source_service: Optional[SourceService] = None,
     ):
         # Pass required args to parent, including the type
-        super().__init__(id, workspace_id, "pdf", title, cache_id, cache_expires_at, source_service)
+        super().__init__(
+            id, workspace_id, "pdf", title, cache_id, cache_expires_at, source_service
+        )
         self.supabase_service = supabase_service
         # Internal state - populated by setup() or during hydration
         self.chapters: List[Chapter] = []
@@ -45,16 +50,14 @@ class PDFSource(Source):
             SourceMetadata with chapters list
         """
         # 1. Get PDF content
-        file_path = config.get('file_path')
-        file_content = config.get('file_content')
+        file_path = config.get("file_path")
+        file_content = config.get("file_content")
 
         # 2. Parse PDF to extract chapters
         self.chapters = await extract_chapters(file_content or file_path)
 
         # 3. Upload to storage
-        self.storage_path = await self.supabase_service.upload_file(
-            file_path
-        )
+        self.storage_path = await self.supabase_service.upload_file(file_path)
 
         # 4. Create cache (automatic via abstract class)
         await self.get_cache_id()
@@ -68,9 +71,9 @@ class PDFSource(Source):
             metadata=[
                 {"id": ch.id, "title": ch.title, "start_page": ch.start_page}
                 for ch in self.chapters
-            ]
+            ],
         )
-    
+
     async def get_full_content(self) -> str:
         """Return all chapters for caching."""
         content_parts = []
@@ -82,7 +85,7 @@ class PDFSource(Source):
 
     async def get_content_for_generation(self, context: Dict[str, Any]) -> str:
         """Get specific chapter text for lab generation."""
-        chapter_id = context.get('chapter_id')
+        chapter_id = context.get("chapter_id")
         if not chapter_id:
             raise ValueError("chapter_id required in context")
 
@@ -91,13 +94,15 @@ class PDFSource(Source):
             raise ValueError(f"Chapter not found: {chapter_id}")
 
         return chapter.text
-    
+
     def get_current_context(self) -> Dict[str, Any]:
         """Get current chapter info."""
         if not self.current_chapter_id:
             return {}
 
-        chapter = next((ch for ch in self.chapters if ch.id == self.current_chapter_id), None)
+        chapter = next(
+            (ch for ch in self.chapters if ch.id == self.current_chapter_id), None
+        )
         if not chapter:
             return {}
 
@@ -106,46 +111,45 @@ class PDFSource(Source):
             "page": chapter.start_page,
             "chapter_id": chapter.id,
         }
-    
+
     def get_available_lab_types(self) -> List[str]:
         """PDF can generate code labs (MVP)."""
         return [
-        lab_type 
-        for lab_type, lab_class in LAB_REGISTRY.items()
-        if self.source_type in lab_class.supported_sources
-    ]
+            lab_type
+            for lab_type, lab_class in LAB_REGISTRY.items()
+            if self.source_type in lab_class.supported_sources
+        ]
 
-def get_actions(self) -> List[Dict[str, Any]]:
-    """Automatically generate actions from compatible labs."""
-    actions = []
-    
-    for lab_type, lab_class in LAB_REGISTRY.items():
-        if self.source_type in lab_class.supported_sources:
-            action = lab_class.get_action_metadata()
-            
-            if hasattr(self, '_enhance_action_config'):
-                action = self._enhance_action_config(action)
-            
-            actions.append(action)
-    
-    return actions
+    def get_actions(self) -> List[Dict[str, Any]]:
+        """Automatically generate actions from compatible labs."""
+        actions = []
 
-def _enhance_action_config(self, action: Dict[str, Any]) -> Dict[str, Any]:
-    """Add PDF-specific config like chapter selection."""
-    # Add chapter_id to config_schema for PDF sources
-    if "config_schema" not in action:
-        action["config_schema"] = {"type": "object", "properties": {}}
-    
-    action["config_schema"]["properties"]["chapter_id"] = {
-        "type": "string",
-        "description": "Chapter to generate from"
-    }
-    action["config_schema"].setdefault("required", []).append("chapter_id")
-    
-    return action
+        for lab_type, lab_class in LAB_REGISTRY.items():
+            if self.source_type in lab_class.supported_sources:
+                action = lab_class.get_action_metadata()
 
+                if hasattr(self, "_enhance_action_config"):
+                    action = self._enhance_action_config(action)
 
-def get_chat_context(self) -> Dict[str, Any]:
+                actions.append(action)
+
+        return actions
+
+    def _enhance_action_config(self, action: Dict[str, Any]) -> Dict[str, Any]:
+        """Add PDF-specific config like chapter selection."""
+        # Add chapter_id to config_schema for PDF sources
+        if "config_schema" not in action:
+            action["config_schema"] = {"type": "object", "properties": {}}
+
+        action["config_schema"]["properties"]["chapter_id"] = {
+            "type": "string",
+            "description": "Chapter to generate from",
+        }
+        action["config_schema"].setdefault("required", []).append("chapter_id")
+
+        return action
+
+    def get_chat_context(self) -> Dict[str, Any]:
         """Context for chat @mentions."""
         return {
             "id": str(self.id),
@@ -156,7 +160,7 @@ def get_chat_context(self) -> Dict[str, Any]:
             "total_chapters": len(self.chapters),
         }
 
-def get_view_data(self) -> Dict[str, Any]:
+    def get_view_data(self) -> Dict[str, Any]:
         """Data for frontend PDF viewer."""
         return {
             "type": "pdf",
@@ -174,3 +178,35 @@ def get_view_data(self) -> Dict[str, Any]:
             "current_chapter_id": self.current_chapter_id,
             "total_pages": self.chapters[-1].end_page if self.chapters else 0,
         }
+
+    @classmethod
+    async def setup_from_db(cls, source: SourceModel):
+        instance = cls(
+            id=source.id,
+            workspace_id=source.workspace_id,
+            title=source.title,
+            cache_id=source.cache_id,
+            cache_expires_at=source.cache_expires_at,
+        )
+
+        instance.storage_path = source.storage_path or ""
+
+        if source.meta_data:
+            instance.chapters = [
+                Chapter(
+                    id=ch["id"],
+                    title=ch["title"],
+                    start_page=ch["start_page"],
+                    end_page=ch.get(
+                        "end_page", ch["start_page"]
+                    ),  # Handle missing end_page
+                    text="",
+                )
+                for ch in source.meta_data
+            ]
+
+            # Set current chapter if available
+            if source.meta_data and len(instance.chapters) > 0:
+                instance.current_chapter_id = instance.chapters[0].id
+
+        return instance

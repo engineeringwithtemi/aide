@@ -22,7 +22,8 @@ logger = get_logger(__name__)
 # This enables dynamic source type discovery and instantiation without
 # modifying core code when adding new source types.
 SOURCE_REGISTRY: Dict[str, Type[Source]] = {}
-LAB_REGISTRY:Dict[str, Type[Lab]] = {}
+LAB_REGISTRY: Dict[str, Type[Lab]] = {}
+
 
 def register_source(cls: Type[Source]) -> Type[Source]:
     """Decorator to register a source type in the global registry.
@@ -51,6 +52,34 @@ def register_source(cls: Type[Source]) -> Type[Source]:
     logger.info(
         "Registered source type", source_type=cls.source_type, source_class=cls.__name__
     )
+    return cls
+
+
+def register_lab(cls: Type[Lab]) -> Type[Lab]:
+    """Decorator to register a lab type in the global registry.
+
+    This decorator should be applied to all concrete Lab implementations
+    to make them discoverable by the system. The lab type is extracted
+    from the class's lab_type property.
+
+    Args:
+        cls: Lab class to register
+
+    Returns:
+        The same class (allows use as decorator)
+
+    Example:
+        @register_lab
+        class CodeLab(Lab):
+            lab_type = "code_lab"
+            ...
+
+    Note:
+        Registration happens at import time. Ensure all lab modules are
+        imported before attempting to use the registry (via _discover_labs()).
+    """
+    LAB_REGISTRY[cls.lab_type] = cls
+    logger.info("Registered lab type", lab_type=cls.lab_type, lab_class=cls.__name__)
     return cls
 
 
@@ -86,8 +115,7 @@ def get_lab_class(lab_type: str) -> Type[Lab]:
         KeyError: If lab type not registered
     """
     if lab_type not in LAB_REGISTRY:
-        raise KeyError(f"Unknown lab type: {lab_type}. "
-                      f"Available: {list_lab_types()}")
+        raise KeyError(f"Unknown lab type: {lab_type}. Available: {list_lab_types()}")
     return LAB_REGISTRY[lab_type]
 
 

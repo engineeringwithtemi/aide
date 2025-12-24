@@ -58,8 +58,8 @@ class BaseRepository(Generic[ModelType]):
 
 
 class WorkspaceRepository(BaseRepository[Workspace]):
-    def __init__(self, model, db):
-        super().__init__(model, db)
+    def __init__(self, db: AsyncSession):
+        super().__init__(Workspace, db)
 
 
 class SourceRepository(BaseRepository[Source]):

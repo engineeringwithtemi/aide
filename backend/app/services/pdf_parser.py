@@ -5,23 +5,13 @@ Extracts chapters and text content from PDF files.
 
 import pymupdf  # PyMuPDF
 from typing import List
-from dataclasses import dataclass
 from app.config.logging import get_logger
+from app.config.schemas import Chapter
 
 logger = get_logger(__name__)
 
 
-@dataclass
-class Chapter:
-    """Chapter/section extracted from PDF."""
-    id: str
-    title: str
-    start_page: int
-    end_page: int
-    text: str
-
-
-async def extract_chapters(file_content: bytes) -> List[Chapter]:
+async def extract_chapters(file_content_or_path) -> List[Chapter]:
     """Extract chapters from PDF content.
 
     Strategy:
@@ -31,7 +21,8 @@ async def extract_chapters(file_content: bytes) -> List[Chapter]:
     4. Fall back to page ranges if no structure found
 
     Args:
-        file_content: PDF file bytes
+        file_content_or_path: Either bytes of PDF content or string path to PDF file
+
 
     Returns:
         List of Chapter objects
@@ -41,7 +32,10 @@ async def extract_chapters(file_content: bytes) -> List[Chapter]:
     """
     try:
         # Open PDF from bytes
-        doc = pymupdf.open(stream=file_content, filetype="pdf")
+        if isinstance(file_content_or_path, bytes):
+            doc = pymupdf.open(stream=file_content_or_path, filetype="pdf")
+        else:
+            doc = pymupdf.open(file_content_or_path)
 
         if doc.is_encrypted:
             raise ValueError("PDF is encrypted. Please provide an unencrypted version.")
@@ -78,7 +72,7 @@ async def extract_chapters(file_content: bytes) -> List[Chapter]:
         logger.error(f"PDF parsing failed: {e}")
         raise ValueError(f"Failed to parse PDF: {str(e)}")
     finally:
-        if 'doc' in locals():
+        if "doc" in locals():
             doc.close()
 
 
@@ -106,13 +100,15 @@ def _extract_from_toc(doc: pymupdf.Document) -> List[Chapter]:
         # Extract text from pages
         text = _extract_text_range(doc, start_page, end_page)
 
-        chapters.append(Chapter(
-            id=f"ch_{i+1}",
-            title=title,
-            start_page=start_page,
-            end_page=end_page,
-            text=text
-        ))
+        chapters.append(
+            Chapter(
+                id=f"ch_{i + 1}",
+                title=title,
+                start_page=start_page,
+                end_page=end_page,
+                text=text,
+            )
+        )
 
     return chapters
 
@@ -128,7 +124,9 @@ def _extract_from_patterns(doc: pymupdf.Document) -> List[Chapter]:
     """Find chapters by matching patterns like 'Chapter 1', 'Section 1', etc."""
     import re
 
-    chapter_pattern = re.compile(r'^(Chapter|CHAPTER|Section|SECTION)\s+(\d+)', re.MULTILINE)
+    chapter_pattern = re.compile(
+        r"^(Chapter|CHAPTER|Section|SECTION)\s+(\d+)", re.MULTILINE
+    )
     chapters = []
 
     for page_num in range(doc.page_count):
@@ -149,13 +147,15 @@ def _extract_from_patterns(doc: pymupdf.Document) -> List[Chapter]:
 
             text_content = _extract_text_range(doc, page_num, end_page)
 
-            chapters.append(Chapter(
-                id=f"ch_{len(chapters)+1}",
-                title=title,
-                start_page=page_num,
-                end_page=end_page,
-                text=text_content
-            ))
+            chapters.append(
+                Chapter(
+                    id=f"ch_{len(chapters) + 1}",
+                    title=title,
+                    start_page=page_num,
+                    end_page=end_page,
+                    text=text_content,
+                )
+            )
 
     return chapters
 
@@ -171,13 +171,15 @@ def _extract_page_ranges(doc: pymupdf.Document) -> List[Chapter]:
 
         text = _extract_text_range(doc, start_page, end_page)
 
-        chapters.append(Chapter(
-            id=f"section_{len(chapters)+1}",
-            title=f"Pages {start_page+1}-{end_page+1}",
-            start_page=start_page,
-            end_page=end_page,
-            text=text
-        ))
+        chapters.append(
+            Chapter(
+                id=f"section_{len(chapters) + 1}",
+                title=f"Pages {start_page + 1}-{end_page + 1}",
+                start_page=start_page,
+                end_page=end_page,
+                text=text,
+            )
+        )
 
     return chapters
 

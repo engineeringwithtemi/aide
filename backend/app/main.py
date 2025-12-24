@@ -8,13 +8,14 @@ import structlog
 import datetime
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes.v1 import workspaces
+from app.routes.v1 import workspaces, sources
 from contextlib import asynccontextmanager
 from app.config.settings import settings
 from app.config.logging import setup_logging, get_logger
 from app.routes.v1.exceptions import register_exception_handlers
-from supabase import  AsyncClientOptions, create_async_client
+from supabase import AsyncClientOptions, create_async_client
 from app.services.supabase import SupabaseService
+
 # Initialize logging
 setup_logging(
     log_level=settings.log_level,
@@ -31,11 +32,14 @@ async def lifespan(app: FastAPI):
     """Enriches the app with additional state and configuration like the httpx client."""
     logger.info("Application starting up")
     # Initialize resources here (db connections, etc.)
-    supabase_client = await create_async_client(settings.supabase_url, settings.supabase_key,
-                                                          options=AsyncClientOptions(
+    supabase_client = await create_async_client(
+        settings.supabase_url,
+        settings.supabase_key,
+        options=AsyncClientOptions(
             postgrest_client_timeout=10, storage_client_timeout=10
-        ))
-    
+        ),
+    )
+
     app.state.supabase_service = SupabaseService(supabase_client)
     yield
     # Cleanup resources here
@@ -111,6 +115,7 @@ async def logging_middleware(request: Request, call_next):
 app.include_router(
     workspaces.router, prefix="/v1/workspaces", tags=["workspace", "workspaces"]
 )
+app.include_router(sources.router, prefix="/v1", tags=["sources"])
 
 
 @app.get("/")

@@ -32,13 +32,21 @@ class Workspace(Base):
         server_default=func.now(), onupdate=func.now()
     )
 
-    sources: Mapped[list["Source"]] = relationship(back_populates="workspace")
-    labs: Mapped[list["Lab"]] = relationship(back_populates="workspace")
-    chats: Mapped[list["ChatMessages"]] = relationship(back_populates="workspace")
-    settings: Mapped[list["WorkspaceSetting"]] = relationship(
-        back_populates="workspace"
+    sources: Mapped[list["Source"]] = relationship(
+        back_populates="workspace", cascade="all, delete", passive_deletes=True
     )
-    edges: Mapped[list["Edges"]] = relationship(back_populates="workspace")
+    labs: Mapped[list["Lab"]] = relationship(
+        back_populates="workspace", cascade="all, delete", passive_deletes=True
+    )
+    chats: Mapped[list["ChatMessages"]] = relationship(
+        back_populates="workspace", cascade="all, delete", passive_deletes=True
+    )
+    settings: Mapped[list["WorkspaceSetting"]] = relationship(
+        back_populates="workspace", cascade="all, delete", passive_deletes=True
+    )
+    edges: Mapped[list["Edges"]] = relationship(
+        back_populates="workspace", cascade="all, delete", passive_deletes=True
+    )
 
 
 class Source(Base):

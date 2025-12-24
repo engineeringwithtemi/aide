@@ -6,6 +6,7 @@ from app.services.ai import ai_provider, aiprovider_exception_wrapper
 from app.config.schemas import SourceMetadata, SourceUpdate
 from app.config.dependencies import SourceSvc
 from app.config.logging import get_logger
+from app.db.tables import Source as SourceModel
 
 logger = get_logger(__name__)
 
@@ -90,6 +91,29 @@ class Source(ABC):
 
     @abstractmethod
     async def setup(self, config: Dict[str, Any]) -> SourceMetadata:
+        """Initialize source with provided configuration.
+
+        Called when source is first added/configured. This method should:
+        - Parse/process the source content
+        - Store any necessary metadata
+        - Trigger initial AI caching via get_cache_id()
+
+        Args:
+            config: Configuration dict specific to source type
+                - PDF: {"file_path": "/path/to/file.pdf"}
+                - GitHub: {"repo_url": "...", "branch": "main"}
+
+        Returns:
+            SourceMetadata containing parsed structure and metadata
+
+        Raises:
+            ValueError: If config is invalid or content cannot be parsed
+        """
+        pass
+
+    @classmethod
+    @abstractmethod
+    async def setup_from_db(cls, source: SourceModel) -> "Source":
         """Initialize source with provided configuration.
 
         Called when source is first added/configured. This method should:

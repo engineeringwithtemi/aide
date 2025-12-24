@@ -21,7 +21,8 @@ async def get_source_service(db: AsyncSession = Depends(get_db)) -> SourceServic
     logger.debug("Dependency injection", service="SourceService")
     return SourceService(db)
 
-async def get_supabase_service(request:Request) -> SupabaseService:
+
+async def get_supabase_service(request: Request) -> SupabaseService:
     logger.debug("Dependency injection", service="StorageService")
     return request.app.state.supabase_service
 
