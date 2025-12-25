@@ -3,6 +3,7 @@ from app.sources.base import Source
 from app.config.schemas import Chapter, SourceMetadata
 from typing import List, Optional, Dict, Any
 from uuid import UUID
+from datetime import datetime
 from app.services.pdf_parser import extract_chapters
 from app.services.supabase import SupabaseService
 from app.services.source import SourceService
@@ -25,7 +26,7 @@ class PDFSource(Source):
         title: str,
         supabase_service: Optional[SupabaseService] = None,
         cache_id: Optional[str] = None,
-        cache_expires_at: Optional[str] = None,
+        cache_expires_at: Optional[datetime] = None,
         source_service: Optional[SourceService] = None,
     ):
         # Pass required args to parent, including the type
@@ -57,7 +58,8 @@ class PDFSource(Source):
         self.chapters = await extract_chapters(file_content or file_path)
 
         # 3. Upload to storage
-        self.storage_path = await self.supabase_service.upload_file(file_path)
+        if self.supabase_service:
+            self.storage_path = await self.supabase_service.upload_file(file_path)
 
         # 4. Create cache (automatic via abstract class)
         await self.get_cache_id()
@@ -68,10 +70,12 @@ class PDFSource(Source):
 
         return SourceMetadata(
             title=self.title,
-            metadata=[
-                {"id": ch.id, "title": ch.title, "start_page": ch.start_page}
-                for ch in self.chapters
-            ],
+            metadata={
+                "chapters": [
+                    {"id": ch.id, "title": ch.title, "start_page": ch.start_page}
+                    for ch in self.chapters
+                ]
+            },
         )
 
     async def get_full_content(self) -> str:
@@ -141,11 +145,21 @@ class PDFSource(Source):
         if "config_schema" not in action:
             action["config_schema"] = {"type": "object", "properties": {}}
 
-        action["config_schema"]["properties"]["chapter_id"] = {
-            "type": "string",
-            "description": "Chapter to generate from",
-        }
-        action["config_schema"].setdefault("required", []).append("chapter_id")
+        config_schema = action["config_schema"]
+        if isinstance(config_schema, dict):
+            if "properties" not in config_schema:
+                config_schema["properties"] = {}
+
+            properties = config_schema.get("properties")
+            if isinstance(properties, dict):
+                properties["chapter_id"] = {
+                    "type": "string",
+                    "description": "Chapter to generate from",
+                }
+
+            required = config_schema.setdefault("required", [])
+            if isinstance(required, list):
+                required.append("chapter_id")
 
         return action
 
@@ -192,6 +206,8 @@ class PDFSource(Source):
         instance.storage_path = source.storage_path or ""
 
         if source.meta_data:
+            # Extract chapters list from metadata dict
+            chapters_data = source.meta_data.get("chapters", [])
             instance.chapters = [
                 Chapter(
                     id=ch["id"],
@@ -202,11 +218,11 @@ class PDFSource(Source):
                     ),  # Handle missing end_page
                     text="",
                 )
-                for ch in source.meta_data
+                for ch in chapters_data
             ]
 
             # Set current chapter if available
-            if source.meta_data and len(instance.chapters) > 0:
+            if instance.chapters:
                 instance.current_chapter_id = instance.chapters[0].id
 
         return instance

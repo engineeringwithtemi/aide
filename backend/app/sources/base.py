@@ -72,6 +72,7 @@ class Source(ABC):
         self.cache_id = cache_id
         self.cache_expires_at = cache_expires_at
         self._source_service = source_service
+        self.storage_path: Optional[str] = None
 
         logger.info(
             "Initialized Source base class",
@@ -79,15 +80,7 @@ class Source(ABC):
             source_id=str(self.id),
         )
 
-    @property
-    @abstractmethod
-    def source_type(self) -> str:
-        """Unique identifier for this source type.
-
-        Returns:
-            String identifier like "pdf", "github", "youtube"
-        """
-        pass
+    source_type: str
 
     @abstractmethod
     async def setup(self, config: Dict[str, Any]) -> SourceMetadata:
@@ -353,6 +346,10 @@ class Source(ABC):
             source_id=str(self.id),
             content_length=len(content),
         )
+
+        if not ai_provider:
+            logger.info("AI provider not configured", source_id=str(self.id))
+            return None
 
         # Check if provider supports caching
         if not ai_provider.supports_caching():

@@ -75,13 +75,14 @@ class SourceRepository(BaseRepository[Source]):
         )
         stmt = select(Source).where(Source.workspace_id == workspace_id)
         results = await self.db.scalars(stmt)
+        results_list = list(results)
         logger.debug(
             "Repository get_by_workspace result",
             model="Source",
             workspace_id=str(workspace_id),
-            count=len(results),
+            count=len(results_list),
         )
-        return list(results)
+        return results_list
 
 
 class LabRepository(BaseRepository[Lab]):
@@ -95,13 +96,14 @@ class LabRepository(BaseRepository[Lab]):
         )
         stmt = select(Lab).where(Lab.workspace_id == workspace_id)
         results = await self.db.scalars(stmt)
+        results_list = list(results)
         logger.debug(
             "Repository get_by_workspace result",
             model="Lab",
             workspace_id=str(workspace_id),
-            count=len(results),
+            count=len(results_list),
         )
-        return list(results)
+        return results_list
 
     @db_exception_handler
     async def get_by_source(self, source_id: UUID) -> list[Lab]:
@@ -109,10 +111,11 @@ class LabRepository(BaseRepository[Lab]):
         stmt = select(Lab).where(Lab.source_id == source_id)
 
         results = await self.db.scalars(stmt)
+        results_list = list(results)
         logger.debug(
             "Repository get_by_source result",
             model="Lab",
             source_id=str(source_id),
-            count=len(results),
+            count=len(results_list),
         )
-        return list(results)
+        return results_list
