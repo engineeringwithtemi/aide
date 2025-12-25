@@ -87,11 +87,16 @@ services:
       - /app/.venv
       - /app/__pycache__
     environment:
-      # Use test database
-      - DATABASE_URL=postgresql://aide:aide@postgres-test:5432/aide_test
+      # Use test database (asyncpg driver for SQLAlchemy async)
+      - DATABASE_URL=postgresql+asyncpg://aide:aide@postgres-test:5432/aide_test
       - ENVIRONMENT=test
       - DEBUG=false
-      - LOG_LEVEL=info
+      - LOG_LEVEL=WARNING
+
+      # Dummy values for required settings (not used in tests, mocked)
+      - GEMINI_API_KEY=test-key
+      - SUPABASE_URL=http://localhost:54321
+      - SUPABASE_KEY=test-key
 
       # Test-specific settings
       - PYTEST_TIMEOUT=300
@@ -103,15 +108,10 @@ services:
       - aide-network
     command: >
       sh -c "
-        echo 'Waiting for test database...' &&
-        sleep 2 &&
-        pytest -v
-          --cov=app
-          --cov-report=html:/app/test-reports/coverage
-          --cov-report=term-missing
-          --cov-report=xml:/app/test-reports/coverage.xml
-          --junit-xml=/app/test-reports/junit.xml
-          --tb=short
+        echo 'Running database migrations...' &&
+        uv run alembic upgrade head &&
+        echo 'Running tests...' &&
+        uv run pytest -v --cov=app --cov-report=html:/app/test-reports/coverage --cov-report=term-missing --cov-report=xml:/app/test-reports/coverage.xml --junit-xml=/app/test-reports/junit.xml --tb=short
       "
     profiles:
       - test

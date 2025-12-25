@@ -1,6 +1,6 @@
 """Source management API endpoints"""
 
-from fastapi import UploadFile, APIRouter, HTTPException, status
+from fastapi import UploadFile, APIRouter, HTTPException
 from app.config.logging import get_logger
 from app.config.schemas import SourceCreate, SourceRead, SourceUpdate
 from app.config.dependencies import SourceSvc, SupabaseSvc
@@ -95,13 +95,9 @@ async def get_source(source_id: UUID, source_svc: SourceSvc):
 
     Returns:
         200: SourceRead with view data
-        404: Source not found
+        404: Source not found (raised by service)
     """
     db_source = await source_svc.get_source(source_id)
-    if not db_source:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Source not found."
-        )
 
     source_class = get_source_class(db_source.type)
     source = await source_class.setup_from_db(db_source)
@@ -128,12 +124,9 @@ async def delete_source(
     """Delete source and associated file.
 
     Cascade deletes labs linked to this source.
+    404 raised by service if source not found.
     """
     source_db = await source_svc.get_source(source_id)
-    if not source_db:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Source not found"
-        )
 
     # Delete from storage
     if source_db.storage_path:

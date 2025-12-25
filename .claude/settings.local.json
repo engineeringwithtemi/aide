@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(make backend-type:*)",
-      "Bash(make backend-check:*)"
+      "Bash(make backend-check:*)",
+      "Bash(make:*)"
     ]
   }
 }
