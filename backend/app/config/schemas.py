@@ -173,3 +173,9 @@ class Chapter:
     start_page: int
     end_page: int
     text: str
+
+
+@dataclass
+class CacheResult:
+    cache_id: str
+    expires_at: datetime

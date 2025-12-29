@@ -2,7 +2,7 @@ from uuid import UUID
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
-from app.services.ai import ai_provider, aiprovider_exception_wrapper
+from app.services.ai import ai_provider, aiprovider_exception_wrapper, CacheConfig
 from app.config.schemas import SourceMetadata, SourceUpdate
 from app.config.dependencies import SourceSvc
 from app.config.logging import get_logger
@@ -351,7 +351,6 @@ class Source(ABC):
             logger.info("AI provider not configured", source_id=str(self.id))
             return None
 
-        # Check if provider supports caching
         if not ai_provider.supports_caching():
             logger.info("AI provider doesn't support caching", source_id=str(self.id))
             return None
@@ -363,9 +362,15 @@ class Source(ABC):
             )
             return None
 
-        # Create cache with provider (e.g., Gemini)
-        logger.info("Calling AI provider to create cache", source_id=str(self.id))
-        cache_result = await ai_provider.create_cache(content)
+        cache_display_name = f"aide-{self.type}-{self.title[:30]}"
+        cache_config = CacheConfig(display_name=cache_display_name)
+
+        logger.info(
+            "Calling AI provider to create cache",
+            source_id=str(self.id),
+            display_name=cache_display_name,
+        )
+        cache_result = ai_provider.create_cache(content, cache_config)
 
         if cache_result:
             self.cache_id = cache_result.cache_id
